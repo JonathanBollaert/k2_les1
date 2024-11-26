@@ -1,0 +1,18 @@
+﻿<h3>@CurrentDateTime.ToString("HH:m:s.fff")</h3>
+
+@code {
+    private DateTime CurrentDateTime { get; set; } = DateTime.Now;
+    private PeriodicTimer Timer { get; } = new PeriodicTimer(TimeSpan.FromMilliseconds(10));
+
+    protected override async Task OnInitializedAsync()
+    {
+        while (await Timer.WaitForNextTickAsync())
+        {
+            CurrentDateTime = DateTime.Now;
+            StateHasChanged();
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+}

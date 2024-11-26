@@ -1,0 +1,31 @@
+﻿@page "/"
+@using TalkApi.Model.Results
+@using TalkApi.Sdk
+@inject ChatChannelService ChatChannelService
+
+<PageTitle>Chat Channels</PageTitle>
+
+<h1>Chat Channels!</h1>
+<a href="/monitor">Go to the monitor</a>
+
+@if (ChatChannels is not null)
+{
+    @foreach (var channel in ChatChannels)
+    {
+        <p>@channel.Name</p>
+    }
+}
+
+
+@code
+{
+    public IList<ChatChannelResult>? ChatChannels { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ChatChannels = await ChatChannelService.Find();
+
+        await base.OnInitializedAsync();
+    }
+
+}

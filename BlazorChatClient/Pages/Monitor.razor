@@ -1,0 +1,85 @@
+﻿@page "/monitor"
+@using TalkApi.Model.Results
+@using TalkApi.Sdk
+@using BlazorChatClient.Components
+@inject ChatChannelService ChatChannelService
+@inject ChatMessageService ChatMessageService
+
+<h1>Monitor</h1>
+<Clock></Clock>
+<a href="/">&lt; Go back</a>
+<div style="display:flex;height:100%;">
+    <div style="height:100%">
+        <h3>Channel log</h3>
+        @if (ChatChannels.Any())
+        {
+            @foreach (var channel in ChatChannels)
+            {
+                <p>[@channel.CreatedAt.ToShortDateString() @channel.CreatedAt.ToLongTimeString()] @channel.Name</p>
+            }
+        }
+        else
+        {
+            <p>No channels yet</p>
+        }
+    </div>
+    <div>
+        <h3>Message log</h3>
+        @if (ChatMessages.Any())
+        {
+            @foreach (var message in ChatMessages)
+            {
+                <p>[@message.CreatedAt.ToShortDateString() @message.CreatedAt.ToLongTimeString()] @message.Author &gt;&gt; @message.Message</p>
+            }
+        }
+        else
+        {
+            <p>No messages yet</p>
+        }
+    </div>
+</div>
+
+@code {
+    private IList<ChatChannelResult> ChatChannels { get; set; } = new List<ChatChannelResult>();
+    private IList<ChatMessageResult> ChatMessages { get; set; } = new List<ChatMessageResult>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadChannels();
+        await LoadMessages();
+
+        var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await timer.WaitForNextTickAsync())
+        {
+            //await Service.GetViewModels();
+            await LoadChannels();
+            await LoadMessages();
+
+            await InvokeAsync(StateHasChanged);
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadChannels()
+    {
+        var channels = await ChatChannelService.Find();
+
+        ChatChannels = channels
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+    }
+
+    private async Task LoadMessages()
+    {
+        var messages = await ChatMessageService.Find();
+
+        ChatMessages = messages
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+    }
+
+}
+
